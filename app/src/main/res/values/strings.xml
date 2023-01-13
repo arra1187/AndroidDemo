@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">AndroidDemo</string>
+    <string name="WelcomeString">Welcome!</string>
+    <string name="low_button_label">LOWER!</string>
+    <string name="greeting">HELLO!</string>
+    <string name="clear_button_label">CLEAR</string>
+    <string name="goButtonLabel">GO</string>
 </resources>
