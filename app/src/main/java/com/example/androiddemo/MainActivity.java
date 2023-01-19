@@ -3,20 +3,28 @@ package com.example.androiddemo;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity
+{
     private EditText mEditText;
 
     private Button mBtnLower;
@@ -25,6 +33,12 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<DataModel> mRVData;
     private RecyclerView mRVList;
     private RecyclerView.Adapter mAdapter;
+    private ImageView mImageView;
+
+    private DataModelDatabase mDB;
+    private DataModelDao mDataModelDao;
+    private ExecutorService mExecutor;
+    private TextView mDBView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -42,8 +56,10 @@ public class MainActivity extends AppCompatActivity {
         mBtnLower = findViewById(R.id.btnLower);
         mBtnClear = findViewById(R.id.clear_button);
         mSpinBox = findViewById(R.id.spinbox);
-        mRVList = findViewById(R.id.recyclerLayout);
+        mRVList = findViewById(R.id.recyclerView);
         mRVList.setLayoutManager(new LinearLayoutManager(this));
+        mDBView = findViewById(R.id.databaseView);
+        mImageView = findViewById (R.id.imageView);
 
         mRVData = new ArrayList<>();
         mRVData.add(new DataModel("CS260", "Winter"));
@@ -86,8 +102,32 @@ public class MainActivity extends AppCompatActivity {
             if(myData != null)
             {
                 mEditText.setText(myData.toString());
+
+                if(myData.getImage() != null)
+                {
+                    Bitmap bmp = BitmapFactory.decodeByteArray(
+                        myData.getImage(), 0,
+                        myData.getImage().length);
+
+                    mImageView.setImageBitmap(bmp);
+                }
             }
         }
+
+        mExecutor = Executors.newSingleThreadExecutor ();
+        mExecutor.execute(() -> {
+           mDB = Room.databaseBuilder (getApplicationContext (),
+               DataModelDatabase.class, "DataModel-db").build();
+
+           mDataModelDao = mDB.dataModelDao ();
+           if(0 == mDataModelDao.getSize())
+           {
+               for(DataModel dm : mRVData)
+               {
+                   mDataModelDao.insert(dm);
+               }
+           }
+        });
     }
 
     public void onClick(View view)
@@ -95,6 +135,20 @@ public class MainActivity extends AppCompatActivity {
         mEditText.setText((String) mSpinBox.getSelectedItem());
         mRVData.add(new DataModel(mEditText.getText().toString(), mEditText.getText().toString()));
         mAdapter.notifyDataSetChanged();
+
+        mExecutor.execute(() ->
+        {
+           mDataModelDao.insert(new DataModel(mEditText.getText().toString(),
+                           "INSERTED"));
+           List<DataModel> theData = mDataModelDao.getAll();
+
+           view.post(() -> mDBView.setText(""));
+           for(DataModel dm : theData)
+           {
+               //Sends work to UI thread
+               view.post(() -> mDBView.append(dm.getTitle() + " : " + dm.getData() + "\n"));
+           }
+        });
     }
 
     public void onClickGo(View view)

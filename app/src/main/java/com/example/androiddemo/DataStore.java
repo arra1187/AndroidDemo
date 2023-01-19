@@ -7,22 +7,28 @@ public class DataStore implements Parcelable
 {
     private String mFirst;
     private String mSecond;
+    private byte [] mImage;
 
     public DataStore(String one, String two)
     {
         mFirst = one;
-        mSecond = one;
+        mSecond = two;
+        mImage = null;
     }
 
-    protected DataStore(Parcel in) {
+    protected DataStore(Parcel in)
+    {
         mFirst = in.readString();
         mSecond = in.readString();
+        mImage = in.createByteArray();
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    public void writeToParcel(Parcel dest, int flags)
+    {
         dest.writeString(mFirst);
         dest.writeString(mSecond);
+        dest.writeByteArray(mImage);
     }
 
     @Override
@@ -45,5 +51,15 @@ public class DataStore implements Parcelable
     public String toString()
     {
         return mFirst + "::" + mSecond;
+    }
+
+    public void setImage(byte [] image)
+    {
+        mImage = image;
+    }
+
+    public byte[] getImage()
+    {
+        return mImage;
     }
 }
