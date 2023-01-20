@@ -1,10 +1,15 @@
 package com.example.androiddemo;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -39,6 +44,8 @@ public class MainActivity extends AppCompatActivity
     private DataModelDao mDataModelDao;
     private ExecutorService mExecutor;
     private TextView mDBView;
+
+    private ActivityResultLauncher<Intent> mActivityLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -93,7 +100,7 @@ public class MainActivity extends AppCompatActivity
                 }
         );
 
-        Intent intent = getIntent();
+        /*Intent intent = getIntent();
         if(null != intent)
         {
             DataStore myData;
@@ -112,7 +119,7 @@ public class MainActivity extends AppCompatActivity
                     mImageView.setImageBitmap(bmp);
                 }
             }
-        }
+        }*/
 
         mExecutor = Executors.newSingleThreadExecutor ();
         mExecutor.execute(() -> {
@@ -128,26 +135,60 @@ public class MainActivity extends AppCompatActivity
                }
            }
         });
+
+        mActivityLauncher = registerForActivityResult (
+            new ActivityResultContracts.StartActivityForResult (),
+            new ActivityResultCallback<ActivityResult>()
+            {
+                @Override
+                public void onActivityResult (ActivityResult result)
+                {
+                    if(result.getResultCode() == Activity.RESULT_OK)
+                    {
+                        Intent intent = getIntent();
+                        if(null != intent)
+                        {
+                            DataStore myData;
+                            mEditText.setText(intent.getStringExtra(Intent.EXTRA_TEXT));
+                            myData = intent.getParcelableExtra("DATA");
+                            if(myData != null)
+                            {
+                                mEditText.setText(myData.toString());
+
+                                if(myData.getImage() != null)
+                                {
+                                    Bitmap bmp = BitmapFactory.decodeByteArray(
+                                        myData.getImage(), 0,
+                                        myData.getImage().length);
+
+                                    mImageView.setImageBitmap(bmp);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
     }
 
     public void onClick(View view)
     {
-        mEditText.setText((String) mSpinBox.getSelectedItem());
-        mRVData.add(new DataModel(mEditText.getText().toString(), mEditText.getText().toString()));
-        mAdapter.notifyDataSetChanged();
+        mEditText.setText ((String) mSpinBox.getSelectedItem ());
+        mRVData.add (new DataModel (mEditText.getText ().toString (),
+            mEditText.getText ().toString ()));
+        mAdapter.notifyDataSetChanged ();
 
-        mExecutor.execute(() ->
-        {
-           mDataModelDao.insert(new DataModel(mEditText.getText().toString(),
-                           "INSERTED"));
-           List<DataModel> theData = mDataModelDao.getAll();
+        mExecutor.execute (() -> {
+            mDataModelDao.insert (
+                new DataModel (mEditText.getText ().toString (), "INSERTED"));
+            List<DataModel> theData = mDataModelDao.getAll ();
 
-           view.post(() -> mDBView.setText(""));
-           for(DataModel dm : theData)
-           {
-               //Sends work to UI thread
-               view.post(() -> mDBView.append(dm.getTitle() + " : " + dm.getData() + "\n"));
-           }
+            view.post (() -> mDBView.setText (""));
+            for (DataModel dm : theData)
+            {
+                //Sends work to UI thread
+                view.post (() -> mDBView.append (
+                    dm.getTitle () + " : " + dm.getData () + "\n"));
+            }
         });
     }
 
@@ -156,7 +197,8 @@ public class MainActivity extends AppCompatActivity
         Log.d("EVEMT", "GO BUTTON");
         Intent intent = new Intent(this, MainActivity2.class);
 
-        startActivity(intent);
+        //startActivity(intent);
+        mActivityLauncher.launch(intent);
     }
 
     public void onResume()

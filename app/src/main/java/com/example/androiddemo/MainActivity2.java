@@ -118,29 +118,45 @@ public class MainActivity2 extends AppCompatActivity
 
     private void getPicture (View view, DataStore myData, Intent intent)
     {
-        ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream();
-        ImageCapture.OutputFileOptions outputFileOptions =
-            new ImageCapture.OutputFileOptions.Builder(byteArrayStream).build();
-        mCameraBackgroundExecutor =
-            Executors.newSingleThreadScheduledExecutor();
+        if(!mbCameraPermission)
+        {
+            intent.putExtra("DATA", myData);
+            setResult(RESULT_OK, intent);
+            finish();
+        }
+        else
+        {
+            ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream ();
+            ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder (
+                byteArrayStream).build ();
+            mCameraBackgroundExecutor = Executors.newSingleThreadScheduledExecutor ();
 
-        mImageCapture.takePicture(outputFileOptions,
-            mCameraBackgroundExecutor,
-            new ImageCapture.OnImageSavedCallback() {
-                @Override
-                public void onImageSaved(ImageCapture.OutputFileResults outputFileResults) {
-                    // the image is in byteArrayStream!
-                    // add image to DataStore
-                    myData.setImage(byteArrayStream.toByteArray());
-                    intent.putExtra ("DATA", myData);
-                    startActivity(intent);
-                }
-                @Override
-                public void onError(ImageCaptureException error) {
-                    Log.d("Camera: ", "error!" + error.toString());
-                    startActivity(intent);
-                }
-            });
+            mImageCapture.takePicture (outputFileOptions,
+                mCameraBackgroundExecutor,
+                new ImageCapture.OnImageSavedCallback ()
+                {
+                    @Override
+                    public void onImageSaved (ImageCapture.OutputFileResults outputFileResults)
+                    {
+                        // the image is in byteArrayStream!
+                        // add image to DataStore
+                        myData.setImage (byteArrayStream.toByteArray ());
+                        intent.putExtra ("DATA", myData);
+                        //startActivity(intent);
+                        setResult (RESULT_OK, intent);
+                        finish ();
+                    }
+
+                    @Override
+                    public void onError (ImageCaptureException error)
+                    {
+                        Log.d ("Camera: ", "error!" + error.toString ());
+                        //startActivity(intent);
+                        setResult (RESULT_OK, intent);
+                        finish ();
+                    }
+                });
+        }
     }
 
     protected void onPause()
