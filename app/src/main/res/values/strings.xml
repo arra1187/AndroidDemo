@@ -5,4 +5,8 @@
     <string name="greeting">HELLO!</string>
     <string name="clear_button_label">CLEAR</string>
     <string name="goButtonLabel">GO</string>
+    <string name="graphicsButtonLabel">GRAPHICS</string>
+    <string name="gogogogogogogogog">GOGOGO</string>
+    <string name="begin">start</string>
+    <string name="terminate">stop</string>
 </resources>

@@ -30,6 +30,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity
 {
+    public static final int GRAPHICS_OK = 69;
     private EditText mEditText;
 
     private Button mBtnLower;
@@ -194,8 +195,17 @@ public class MainActivity extends AppCompatActivity
 
     public void onClickGo(View view)
     {
-        Log.d("EVEMT", "GO BUTTON");
+        Log.d("EVENT", "GO BUTTON");
         Intent intent = new Intent(this, MainActivity2.class);
+
+        //startActivity(intent);
+        mActivityLauncher.launch(intent);
+    }
+
+    public void onClickGraphics(View view)
+    {
+        Log.d("EVENT", "GRAPHICS BUTTON");
+        Intent intent = new Intent(this, Graphics_Activity.class);
 
         //startActivity(intent);
         mActivityLauncher.launch(intent);
